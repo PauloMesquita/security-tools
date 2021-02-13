@@ -1,4 +1,4 @@
-import optparse
+import argparse
 import subprocess
 import sys
 import re
@@ -20,10 +20,10 @@ def run_terminal_command(commands_array):
         
 
 def get_arguments():
-    parser = optparse.OptionParser()
-    parser.add_option("-i", "--interface", dest="interface", help="interface to change the mac")
-    parser.add_option("-m", "--mac", dest="mac", help="mac to use in the new interface")
-    (options, _) = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--interface", dest="interface", help="interface to change the mac")
+    parser.add_argument("-m", "--mac", dest="mac", help="mac to use in the new interface")
+    options = parser.parse_args()
     if not options.interface:
         parser.error("[-] Please specify an interface, use --help for more info")
     if not options.mac:
